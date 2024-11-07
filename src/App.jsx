@@ -1,9 +1,22 @@
+import React, { useState } from "react";
 const groceryItems = [
   {
     id: 1,
-    name: "Kopi bubuk",
-    quantity: 5,
+    name: "Kopi Bubuk",
+    quantity: 2,
     checked: true,
+  },
+  {
+    id: 2,
+    name: "Gula Pasir",
+    quantity: 5,
+    checked: false,
+  },
+  {
+    id: 3,
+    name: "Air Mineral",
+    quantity: 3,
+    checked: false,
   },
 ];
 
@@ -23,18 +36,39 @@ function Header() {
 }
 
 function Form() {
+  const [name, setName] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!name) return;
+
+    const newItem = {
+      name: name,
+      quantity: quantity,
+      checked: false,
+      id: Date.now(),
+    };
+    console.log(newItem);
+
+    setName("");
+    setQuantity(1);
+  }
+
+  const quantityNum = [...Array(20)].map((_, i) => (
+    <option key={i + 1} value={i + 1}>
+      {i + 1}
+    </option>
+  ));
   return (
-    <form className="add-form">
+    <form className="add-form" onSubmit={handleSubmit}>
       <h3>Hari ini belanja apa kita?</h3>
       <div>
-        <select>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
+        <select value={quantity} onChange={(e) => setQuantity(Number(e.target.value))}>
+          {quantityNum}
         </select>
-        <input type="text" placeholder="nama barang..." />
+        <input type="text" placeholder="nama barang..." value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <button>Tambah</button>
     </form>
@@ -46,21 +80,9 @@ function GroceryList() {
     <>
       <div className="list">
         <ul>
-          <li>
-            <input type="checkbox" checked="true" />
-            <span style="text-decoration: line-through;">1 Kopi</span>
-            <button>&times;</button>
-          </li>
-          <li>
-            <input type="checkbox" />
-            <span>5 Gula Pasir</span>
-            <button>&times;</button>
-          </li>
-          <li>
-            <input type="checkbox" />
-            <span>3 Air Mineral</span>
-            <button>&times;</button>
-          </li>
+          {groceryItems.map((item) => (
+            <Item item={item} key={item.id} />
+          ))}
         </ul>
       </div>
       <div className="actions">
@@ -72,6 +94,18 @@ function GroceryList() {
         <button>Bersihkan Daftar</button>
       </div>
     </>
+  );
+}
+
+function Item({ item }) {
+  return (
+    <li key={item.id}>
+      <input type="checkbox" checked="true" />
+      <span style={item.checked ? { textDecoration: "line-through" } : {}}>
+        {item.quantity} {item.name}
+      </span>
+      <button>&times;</button>
+    </li>
   );
 }
 
