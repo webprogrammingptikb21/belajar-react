@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from "react";
 const groceryItems = [
   {
@@ -21,11 +23,28 @@ const groceryItems = [
 ];
 
 export default function App() {
+  const [items, setItems] = useState(groceryItems);
+
+  function handleAddItem(item) {
+    setItems([...items, item]);
+  }
+
+  function handleDeleteItem(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
+
+  function handleCheckItem(id) {
+    setItems((items) => items.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item)));
+  }
+
+  function handleClearItems() {
+    setItems([]);
+  }
   return (
     <div className="app">
       <Header />
-      <Form />
-      <GroceryList />
+      <Form onAddItem={handleAddItem} />
+      <GroceryList items={items} onDeleteItem={handleDeleteItem} onToggleItem={handleCheckItem} onClearItems={handleClearItems} />
       <Footer />
     </div>
   );
@@ -35,7 +54,7 @@ function Header() {
   return <h1>Catatan Belanjaku 📝</h1>;
 }
 
-function Form() {
+function Form({ onAddItem }) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -50,6 +69,7 @@ function Form() {
       checked: false,
       id: Date.now(),
     };
+    onAddItem(newItem);
     console.log(newItem);
 
     setName("");
@@ -75,36 +95,63 @@ function Form() {
   );
 }
 
-function GroceryList() {
+function GroceryList({ items, onDeleteItem, onToggleItem, onClearItems }) {
+  const [sortBy, setSortBy] = useState("input");
+
+  let sortedItems;
+
+  if (sortBy === "input") {
+    //jika sortby nya itu isinya input
+    sortedItems = items; //sorteditems akan berisi items
+  }
+
+  if (sortBy == "name") {
+    sortedItems = items.slice().sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  if (sortBy === "checked") {
+    sortedItems = items.slice().sort((a, b) => a.checked - b.checked);
+  }
+  // switch (sortBy) {
+  //   case "name":
+  //     sortedItems = items.slice().sort((a, b) => a.name.localeCompare(b.name));
+  //     break;
+  //   case "checked":
+  //     sortedItems = items.slice().sort((a, b) => a.checked - b.checked);
+  //     break;
+  //   default:
+  //     sortedItems = items;
+  //     break;
+  // }
   return (
     <>
       <div className="list">
         <ul>
-          {groceryItems.map((item) => (
-            <Item item={item} key={item.id} />
+          {sortedItems.map((item) => (
+            <Item item={item} key={item.id} onDeleteItem={onDeleteItem} onToggleItem={onToggleItem} />
           ))}
         </ul>
       </div>
       <div className="actions">
-        <select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="input">Urutkan berdasarkan urutan input</option>
           <option value="name">Urutkan berdasarkan nama barang</option>
           <option value="checked">Urutkan berdasarkan ceklis</option>
         </select>
-        <button>Bersihkan Daftar</button>
+        <button onClick={onClearItems}>Bersihkan Daftar</button>
       </div>
     </>
   );
 }
 
-function Item({ item }) {
+function Item({ item, onDeleteItem, onToggleItem }) {
   return (
     <li key={item.id}>
-      <input type="checkbox" checked="true" />
+      <input type="checkbox" checked={item.checked} onChange={() => onToggleItem(item.id)} />
       <span style={item.checked ? { textDecoration: "line-through" } : {}}>
         {item.quantity} {item.name}
       </span>
-      <button>&times;</button>
+      <button onClick={() => onDeleteItem(item.id)}>&times;</button>
     </li>
   );
 }
